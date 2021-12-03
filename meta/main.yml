@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  author: janusz
+  description: installs sshd and harden its
+  company: <johannes_arlt>
+  role_name: hardenssh
+
+
+
+  license: license CC-BY
+
+  min_ansible_version: 2.3
+  platforms:
+  - name: Debian
+    versions:
+    - all
+  - name: Ubuntu
+    versions:
+    - all
+
+  
+dependencies: []

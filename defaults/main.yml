@@ -1,0 +1,20 @@
+---
+# defaults file for hardenssh
+
+harden_sshd_pkg_list:
+  - openssh-client
+  - openssh-server
+  - openssh-sftp-server
+  - ssh
+  - fail2ban
+  - libpam-google-authenticator
+
+harden_ssh_disable_x11: true
+harden_ssh_server_port: 8022
+harden_ssh_selinux: no
+harden_ssh_AllowUsers:
+  - georgos
+
+# mkpasswd -m sha-512
+harden_ssh_root_password: "{{ vault_root_paasword | default('$6$PGd4Bl8oU0NEJcPL$xZBiivA/c7LB5G437Vx5S4LYZloKKdpXPefuJeTWL9zP1ICWnC4USMMB61gT5hgh/WpIEmGpeEiHoRmruTUIz.') }}"
+

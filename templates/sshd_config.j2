@@ -1,0 +1,35 @@
+
+
+{% if harden_ssh_AllowUsers %}
+AllowUsers {% for item in harden_ssh_AllowUsers %}{{ item }} {% endfor %}
+{% endif %}
+
+Protocol 2
+Port {{ harden_ssh_server_port }}
+
+#AddressFamily any
+#ListenAddress 0.0.0.0
+#ListenAddress ::
+
+LogLevel INFO
+LoginGraceTime 20
+PermitRootLogin no
+StrictModes yes
+MaxAuthTries 3
+MaxSessions 3
+PubkeyAuthentication yes
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication yes
+KerberosAuthentication no
+GSSAPIAuthentication no
+PermitUserEnvironment no
+
+UsePAM yes
+AuthenticationMethods publickey,keyboard-interactive
+
+X11Forwarding no
+#X11DisplayOffset 10
+#X11UseLocalhost yes
+AcceptEnv LANG LC_*
+Subsystem       sftp    /usr/lib/openssh/sftp-server

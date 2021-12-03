@@ -1,0 +1,19 @@
+---
+# handlers file for hardenssh
+
+- name: restart sshd
+  service: 
+    name: sshd 
+    state: restarted
+  when: ansible_virtualization_type != 'docker'
+  notify:
+    restart fail2ban
+
+
+- name: restart fail2ban
+  service: 
+    name: fail2ban
+    state: restarted
+  when: ansible_virtualization_type != 'docker'
+
+

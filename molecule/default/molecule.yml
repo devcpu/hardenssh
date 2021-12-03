@@ -1,0 +1,30 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: harden_ssh 
+    image: geerlingguy/docker-debian10-ansible:latest
+    pre_build_image: true
+provisioner:
+  name: ansible
+lint: |
+  ansible-lint
+verifier:
+  name: testinfra
+scenario:
+  name: default
+  test_sequence:
+    - destroy
+#    - dependency
+    - syntax
+    - create
+    - prepare
+    - converge
+    - login
+    - idempotence
+    - verify
+# #    - side_effect
+    - destroy
+    - lint

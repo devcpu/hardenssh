@@ -1,0 +1,126 @@
+---
+# tasks file for hardenssh
+
+  - name: set /run/sshd for sshd
+    file:
+      path: /run/sshd
+      owner: root
+      group: root
+      mode: '0700'
+      state: directory
+
+  - name: installs all nessesery pkgs
+    apt:
+      name: "{{ harden_sshd_pkg_list }}"
+      state: present
+      update_cache: true
+
+  - name: set new root password
+    user:
+      name: root
+      password: "{{ harden_ssh_root_password }}"
+    no_log: True
+
+  - name: Add user accounts
+    user:
+      name: "{{ item }}"
+      shell: /bin/bash
+      state: present
+      password: '!'
+    with_items: "{{ harden_ssh_AllowUsers }}"
+    no_log: True
+
+  - name: upload ssh key file
+    authorized_key:
+      user: "{{ item }}"
+      state: present
+      key: "{{ lookup('file', '~/.ssh/id_ed25519.pub') }}"
+      manage_dir: True
+    with_items: "{{ harden_ssh_AllowUsers }}"
+
+  - name:  Remove password auth from SSH PAM
+    replace:
+      dest: '/etc/pam.d/sshd'
+      regexp: '^@include common-auth'
+      replace: |-
+        #@include common-auth
+        auth required pam_google_authenticator.so nullok
+
+  - name:  Remove nologin
+    replace:
+      dest: '/etc/pam.d/sshd'
+      regexp: '.*nologin.*'
+      replace: ''
+
+  - name: template sshd
+    template:
+      src: sshd_config.j2
+      dest: /etc/ssh/sshd_config
+      owner: root
+      group: root
+      mode: '0644'
+    notify:
+      restart sshd
+
+
+  # - name: Forbid SSH root login
+  #   lineinfile: 
+  #     dest: /etc/ssh/sshd_config 
+  #     regexp: "^#PermitRootLogin |^PermitRootLogin |^# PermitRootLogin " 
+  #     line: "PermitRootLogin no" 
+  #     state: present
+  #   become: yes
+  #   notify:
+  #     restart sshd
+
+  # - name: Set AllowUsers for sshd
+  #   lineinfile: 
+  #     dest: /etc/ssh/sshd_config 
+  #     regexp: 'AllowUsers'
+  #     line: AllowUsers {{ harden_ssh_AllowUsers | join(' ') }}
+  #     state: present
+  #   become: yes
+  #   notify:
+  #     restart sshd
+
+  # - name: Set the SSHD protocol to 2 only
+  #   lineinfile: 
+  #     dest: /etc/ssh/sshd_config 
+  #     regexp: "Protocol" 
+  #     line: "Protocol 2" 
+  #     state: present
+  #   become: yes
+  #   notify:
+  #     restart sshd
+
+  # - name: Disable X11Forwarding
+  #   lineinfile: 
+  #     dest: /etc/ssh/sshd_config 
+  #     regexp: "^X11Forwarding |^#X11Forwarding |^# X11Forwarding " 
+  #     line: "X11Forwarding no" 
+  #     state: present
+  #   become: yes
+  #   when: (harden_ssh_disable_x11|string in 'TRUE.True.true.YES.Yes.yes.1' | default('yes'))
+  #   notify:
+  #     restart sshd
+
+
+  # - name: Change sshd port in selinux
+  #   seport:
+  #     ports: "{{ harden_ssh_server_port }}"
+  #     proto: tcp
+  #     setype: ssh_port_t
+  #     state: present
+  #   when: (harden_ssh_selinux|string in 'TRUE.True.true.YES.Yes.yes.1' | default('no'))
+  #   notify:
+  #     restart sshd
+
+  # - name: Change sshd port
+  #   lineinfile: 
+  #     dest: /etc/ssh/sshd_config
+  #     regexp: 'Port \d+'
+  #     line: "Port {{ harden_ssh_server_port }}" 
+  #     state: present
+  #   become: yes
+  #   notify:
+  #     restart sshd
